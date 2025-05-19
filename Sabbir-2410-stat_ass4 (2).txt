@@ -1,0 +1,236 @@
+Sabbir Ahmed Sakib
+2410- Stat_ass4
+code-
+
+# Import libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import ttest_ind, chi2_contingency
+
+# Load the dataset
+from google.colab import files
+uploaded = files.upload()  # Upload the 'insurance.csv' file
+
+# Read the dataset
+insurance_data = pd.read_csv('insurance.csv')
+
+# Overview of the dataset
+print("First few rows of the dataset:")
+print(insurance_data.head())
+print("\nDataset Info:")
+print(insurance_data.info())
+print("\nSummary Statistics:")
+print(insurance_data.describe())
+
+# 1. Are there more Male beneficiaries?
+gender_counts = insurance_data['sex'].value_counts()
+print("\nGender Distribution:")
+print(gender_counts)
+sns.countplot(x='sex', data=insurance_data)
+plt.title('Gender Distribution')
+plt.show()
+
+# 2. Are there more smokers?
+smoker_counts = insurance_data['smoker'].value_counts()
+print("\nSmoker Distribution:")
+print(smoker_counts)
+sns.countplot(x='smoker', data=insurance_data)
+plt.title('Smoker Distribution')
+plt.show()
+
+# 3. Which region has the maximum medical cost billed to health insurance?
+region_avg_charges = insurance_data.groupby('region')['charges'].mean()
+print("\nAverage Medical Cost by Region:")
+print(region_avg_charges)
+region_avg_charges.plot(kind='bar', color='skyblue')
+plt.title('Average Medical Cost by Region')
+plt.ylabel('Charges')
+plt.show()
+
+# 4. What is the age of the beneficiaries?
+sns.histplot(insurance_data['age'], kde=True, bins=10, color='orange')
+plt.title('Age Distribution of Beneficiaries')
+plt.xlabel('Age')
+plt.show()
+
+# 5. Do beneficiaries with more dependents have higher medical costs?
+sns.scatterplot(x='children', y='charges', data=insurance_data, hue='smoker')
+plt.title('Number of Dependents vs Medical Charges')
+plt.show()
+
+# 6. Prove (or disprove) that smokers incur higher medical costs.
+smokers = insurance_data[insurance_data['smoker'] == 'yes']['charges']
+non_smokers = insurance_data[insurance_data['smoker'] == 'no']['charges']
+t_stat, p_value = ttest_ind(smokers, non_smokers)
+print(f"\nT-test for Smokers vs Non-Smokers Medical Charges:")
+print(f"T-statistic: {t_stat}, P-value: {p_value}")
+if p_value < 0.05:
+    print("Smokers have significantly higher medical costs.")
+else:
+    print("No significant difference in medical costs between smokers and non-smokers.")
+
+# 7. Is BMI significantly different between males and females?
+males = insurance_data[insurance_data['sex'] == 'male']['bmi']
+females = insurance_data[insurance_data['sex'] == 'female']['bmi']
+t_stat, p_value = ttest_ind(males, females)
+print(f"\nT-test for BMI of Males vs Females:")
+print(f"T-statistic: {t_stat}, P-value: {p_value}")
+if p_value < 0.05:
+    print("BMI is significantly different between males and females.")
+else:
+    print("No significant difference in BMI between males and females.")
+
+# 8. Is the proportion of smokers significantly different across regions?
+contingency_table = pd.crosstab(insurance_data['region'], insurance_data['smoker'])
+chi2, p, dof, expected = chi2_contingency(contingency_table)
+print(f"\nChi-square Test for Smokers Across Regions:")
+print(f"Chi-square Statistic: {chi2}, P-value: {p}")
+if p < 0.05:
+    print("Proportion of smokers differs significantly across regions.")
+else:
+    print("No significant difference in the proportion of smokers across regions.")
+
+# 9. Is the mean BMI of women with no children, one child, and two children the same?
+women = insurance_data[insurance_data['sex'] == 'female']
+groups = [women[women['children'] == i]['bmi'] for i in range(3)]
+from scipy.stats import f_oneway
+f_stat, p_value = f_oneway(*groups)
+print(f"\nANOVA Test for BMI of Women with Different Numbers of Children:")
+print(f"F-statistic: {f_stat}, P-value: {p_value}")
+if p_value < 0.05:
+    print("Mean BMI differs significantly between groups.")
+else:
+    print("No significant difference in mean BMI across groups.")
+
+print("\nAnalysis Complete!")
+
+
+Output:
+insurance.csv
+insurance.csv(text/csv) - 55628 bytes, last modified: 12/5/2024 - 100% done
+Saving insurance.csv to insurance.csv
+
+First few rows of the dataset:
+   age     sex     bmi  children smoker     region      charges
+0   19  female  27.900         0    yes  southwest  16884.92400
+1   18    male  33.770         1     no  southeast   1725.55230
+2   28    male  33.000         3     no  southeast   4449.46200
+3   33    male  22.705         0     no  northwest  21984.47061
+4   32    male  28.880         0     no  northwest   3866.85520
+
+Dataset Info:
+
+RangeIndex: 1338 entries, 0 to 1337
+Data columns (total 7 columns):
+ #   Column    Non-Null Count  Dtype  
+---  ------    --------------  -----  
+ 0   age       1338 non-null   int64  
+ 1   sex       1338 non-null   object 
+ 2   bmi       1338 non-null   float64
+ 3   children  1338 non-null   int64  
+ 4   smoker    1338 non-null   object 
+ 5   region    1338 non-null   object 
+ 6   charges   1338 non-null   float64
+dtypes: float64(2), int64(2), object(3)
+memory usage: 73.3+ KB
+None
+
+Summary Statistics:
+               age          bmi     children       charges
+count  1338.000000  1338.000000  1338.000000   1338.000000
+mean     39.207025    30.663397     1.094918  13270.422265
+std      14.049960     6.098187     1.205493  12110.011237
+min      18.000000    15.960000     0.000000   1121.873900
+25%      27.000000    26.296250     0.000000   4740.287150
+50%      39.000000    30.400000     1.000000   9382.033000
+75%      51.000000    34.693750     2.000000  16639.912515
+max      64.000000    53.130000     5.000000  63770.428010
+
+1.
+Gender Distribution:
+sex
+male      676
+female    662
+Name: count, dtype: int64
+
+The bar chart shows the gender distribution among beneficiaries. Male and female beneficiaries are almost equally represented, with a slightly higher count for males. This balanced distribution ensures gender-related analyses are unbiased.
+
+2.
+Smoker Distribution:
+smoker
+no     1064
+yes     274
+Name: count, dtype: int64
+
+This bar chart titled "Smoker Distribution" displays the count of individuals categorized as smokers ("yes") and non-smokers ("no"). The majority of the population are non-smokers, with over 1000 counts, whereas smokers are significantly fewer, with around 200 counts.
+3.
+Average Medical Cost by Region:
+region
+northeast    13406.384516
+northwest    12417.575374
+southeast    14735.411438
+southwest    12346.937377
+Name: charges, dtype: float64
+
+ This bar chart shows the average medical cost by region. The Southeast has the highest average cost, followed by the Northeast, while the Northwest and Southwest have lower averages. This highlights regional differences in medical expenses.
+
+4.This histogram illustrates the age distribution of beneficiaries. The highest count is among individuals in their early 20s, indicating this age group is the most represented. The distribution decreases for ages in the 30s and then stabilizes around the 40s and 50s, with a slight decline in representation for those in their 60s. The orange curve represents the smoothed density of the age distribution, highlighting trends across age groups.
+
+5. The scatterplot shows medical charges versus the number of dependents, categorized by smoking status. Smokers (blue points) generally incur significantly higher medical costs across all dependent levels compared to non-smokers (orange points). The number of dependents has a limited direct impact on charges, with smoking being a stronger determinant of cost variability.
+
+6.T-test for Smokers vs Non-Smokers Medical Charges:
+T-statistic: 46.66492117272371, P-value: 8.271435842179102e-283
+Smokers have significantly higher medical costs.
+
+7.T-test for BMI of Males vs Females:
+T-statistic: 1.696752635752224, P-value: 0.08997637178984932
+No significant difference in BMI between males and females.
+
+8.Chi-square Test for Smokers Across Regions:
+Chi-square Statistic: 7.343477761407071, P-value: 0.06171954839170541
+No significant difference in the proportion of smokers across regions.
+
+9.ANOVA Test for BMI of Women with Different Numbers of Children:
+F-statistic: 0.3344720147757968, P-value: 0.7158579926754841
+No significant difference in mean BMI across groups.
+
+Analysis Complete!
+
+
+Results Overview
+
+Dataset Overview:
+- Rows and Columns: 1,338 entries, 7 columns
+- Key Features:
+  - Age, Sex, BMI, Number of Children, Smoker Status, Region, Medical Charges
+- Summary Statistics:
+  - Average Age: 39.2 (Range: 18-64)
+  - Average BMI: 30.66 (Range: 15.96-53.13)
+  - Average Charges: $13,270.42 (Range: $1,121.87-$63,770.43)
+
+Key Findings:
+1. Gender Distribution:
+   - Male: 676 (50.5%), Female: 662 (49.5%)
+
+2. Smoking Status:
+   - Smokers: 274 (20.5%), Non-Smokers: 1,064 (79.5%)
+
+3. Average Medical Costs by Region:
+   - Highest: Southeast ($14,735.41)
+   - Lowest: Northwest ($12,417.58)
+
+4. Statistical Tests:
+   - Smokers vs. Non-Smokers (Medical Charges):
+     - T-statistic: 46.66, P-value: 8.27e-283
+     - Conclusion: Smokers incur significantly higher medical costs.
+   - BMI by Gender:
+     - T-statistic: 1.70, P-value: 0.09
+     - Conclusion: No significant BMI difference between males and females.
+   - Smokers Across Regions:
+     - Chi-square Statistic: 7.34, P-value: 0.06
+     - Conclusion: Proportions of smokers are similar across regions.
+   - BMI vs. Number of Children (Women):
+     - F-statistic: 0.33, P-value: 0.72
+     - Conclusion: No significant BMI difference based on the number of children.
